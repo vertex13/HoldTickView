@@ -8,11 +8,13 @@
     tools:context="com.koshkama.holdcheckbox.example.ExampleActivity">
 
     <Button
+        android:id="@+id/runButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Run"/>
 
     <com.koshkama.holdcheckbox.HoldCheckBox
+        android:id="@+id/holdCheckBox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:switchingTime="2000" />
