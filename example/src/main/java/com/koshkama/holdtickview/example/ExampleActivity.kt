@@ -1,4 +1,4 @@
-package com.koshkama.holdcheckbox.example
+package com.koshkama.holdtickview.example
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -10,8 +10,8 @@ class ExampleActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_example)
         runButton.setOnClickListener {
-            holdCheckBox.isChecked = !holdCheckBox.isChecked
-            holdCheckBox.animateTick(holdCheckBox.isChecked)
+            holdTickView.isChecked = !holdTickView.isChecked
+            holdTickView.animateTick(holdTickView.isChecked)
         }
     }
 

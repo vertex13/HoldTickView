@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <declare-styleable name="HoldCheckBox">
+    <declare-styleable name="HoldTickView">
         <!-- A color in the checked state. -->
         <attr name="checkedColor" format="color" />
         <!-- A color in the unchecked state. -->

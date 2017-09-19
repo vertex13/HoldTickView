@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.koshkama.holdcheckbox.example.ExampleActivity">
+    tools:context="com.koshkama.holdtickview.example.ExampleActivity">
 
     <Button
         android:id="@+id/runButton"
@@ -13,8 +13,8 @@
         android:layout_height="wrap_content"
         android:text="Run"/>
 
-    <com.koshkama.holdcheckbox.HoldCheckBox
-        android:id="@+id/holdCheckBox"
+    <com.koshkama.holdtickview.HoldTickView
+        android:id="@+id/holdTickView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:switchingTime="2000" />

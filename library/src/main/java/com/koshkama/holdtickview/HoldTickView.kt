@@ -1,4 +1,4 @@
-package com.koshkama.holdcheckbox
+package com.koshkama.holdtickview
 
 import android.animation.ValueAnimator
 import android.content.Context
@@ -9,7 +9,7 @@ import android.view.View
 /**
  * @author Aleksandr Pavlov
  */
-open class HoldCheckBox : View {
+open class HoldTickView : View {
 
     private companion object {
         const val PHASE_VISIBLE = 0f
@@ -62,11 +62,11 @@ open class HoldCheckBox : View {
 
     private fun init(context: Context, attrs: AttributeSet? = null) {
         if (attrs != null) {
-            val typedArray = context.theme.obtainStyledAttributes(attrs, R.styleable.HoldCheckBox, 0, 0)
+            val typedArray = context.theme.obtainStyledAttributes(attrs, R.styleable.HoldTickView, 0, 0)
             try {
-                checkedColor = typedArray.getColor(R.styleable.HoldCheckBox_checkedColor, checkedColor)
-                uncheckedColor = typedArray.getColor(R.styleable.HoldCheckBox_uncheckedColor, uncheckedColor)
-                switchingTime = typedArray.getInteger(R.styleable.HoldCheckBox_switchingTime, switchingTime)
+                checkedColor = typedArray.getColor(R.styleable.HoldTickView_checkedColor, checkedColor)
+                uncheckedColor = typedArray.getColor(R.styleable.HoldTickView_uncheckedColor, uncheckedColor)
+                switchingTime = typedArray.getInteger(R.styleable.HoldTickView_switchingTime, switchingTime)
             } finally {
                 typedArray.recycle()
             }
