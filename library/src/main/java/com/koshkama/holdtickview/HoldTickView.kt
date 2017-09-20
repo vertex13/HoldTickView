@@ -17,13 +17,13 @@ open class HoldTickView : View {
     }
 
     /**
-     * A color in the checked state. By default [Color.GREEN].
+     * A color in the checked state. By default 0xFF43A047.
      */
-    var checkedColor: Int = Color.GREEN
+    var checkedColor: Int = (0xFF43A047).toInt()
     /**
-     * A color in the unchecked state. By default [Color.GRAY].
+     * A color in the unchecked state. By default 0xFF757575.
      */
-    var uncheckedColor: Int = Color.GRAY
+    var uncheckedColor: Int = (0xFF757575).toInt()
 
     var shadowColor: Int = Color.BLACK
     /**
@@ -43,9 +43,17 @@ open class HoldTickView : View {
     private var tickPhase = PHASE_INVISIBLE
     private val tickPath = Path()
     private var tickWidth = 0f
-    private var tickLength: Float = 0f
-    private val pathCoords = arrayOf(PointF(0f, 0.6f), PointF(0.3f, 0.9f), PointF(1f, 0.2f))
+    private var tickLength = 0f
+    private val pathCoords = arrayOf(PointF(0f, 0.3f), PointF(0.4f, 0.7f), PointF(1f, 0f))
     private var tickAnimator = ValueAnimator()
+
+    private val circleRatio = 10f
+    private val circlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+    }
+    private var circleRadius = 0f
+    private var circleWidth = 0f
+    private val circlePosition = PointF()
 
     constructor(context: Context) : super(context) {
         init(context)
@@ -72,14 +80,24 @@ open class HoldTickView : View {
             }
         }
         tickPhase = if (isChecked) PHASE_VISIBLE else PHASE_INVISIBLE
+        setLayerType(LAYER_TYPE_SOFTWARE, tickPaint)
+        setLayerType(LAYER_TYPE_SOFTWARE, circlePaint)
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        drawCircle(canvas)
+        drawTick(canvas)
+    }
 
-        // draw circle
+    private fun drawCircle(canvas: Canvas) {
+        circlePaint.color = if (isChecked) checkedColor else uncheckedColor
+        circlePaint.strokeWidth = circleWidth
+        circlePaint.setShadowLayer(shadowRadius, 0f, 0f, shadowColor)
+        canvas.drawCircle(circlePosition.x, circlePosition.y, circleRadius, circlePaint)
+    }
 
-        // draw tick
+    private fun drawTick(canvas: Canvas) {
         applyTickDashEffect(tickPhase)
         tickPaint.color = checkedColor
         tickPaint.strokeWidth = tickWidth
@@ -89,12 +107,25 @@ open class HoldTickView : View {
 
     override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
         super.onSizeChanged(width, height, oldWidth, oldHeight)
+        val viewSize: Float = Math.min(width, height).toFloat()
+        recalculateCircleSize(viewSize)
+        recalculateTickSize(viewSize)
+    }
 
-        // recalculate tick path
-        val size: Float = Math.min(width, height).toFloat()
-        tickWidth = size / tickRatio
-        val padding = tickWidth * 0.5f + shadowRadius * 0.5f
-        val croppedSize = Math.max(size - padding * 2f, 0f)
+    private fun recalculateCircleSize(viewSize: Float) {
+        circleWidth = viewSize / circleRatio
+        circleRadius = Math.max(viewSize * 0.4f - circleWidth * 0.5f - shadowRadius, 0f)
+        circlePosition.apply {
+            val center = viewSize * 0.5f
+            x = center
+            y = center
+        }
+    }
+
+    private fun recalculateTickSize(viewSize: Float) {
+        tickWidth = viewSize / tickRatio
+        val padding = tickWidth * 0.5f + shadowRadius
+        val croppedSize = Math.max(viewSize - padding * 2f, 0f)
         tickPath.reset()
         val calcPosition = { v: Float -> v * croppedSize + padding }
         val firstPoint = pathCoords.first()
@@ -120,7 +151,7 @@ open class HoldTickView : View {
             else -> tickAnimator.setFloatValues(0f, 1f)
         }
         tickAnimator.addUpdateListener(this::onTickAnimationUpdate)
-        tickAnimator.duration = 500
+        tickAnimator.duration = 200
         tickAnimator.start()
     }
 
