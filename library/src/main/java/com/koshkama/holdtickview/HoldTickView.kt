@@ -1,9 +1,11 @@
 package com.koshkama.holdtickview
 
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 
 /**
@@ -14,6 +16,8 @@ open class HoldTickView : View {
     private companion object {
         const val PHASE_VISIBLE = 0f
         const val PHASE_INVISIBLE = 1f
+        const val START_ANGLE = 315f
+        const val DEGREES = 360f
     }
 
     /**
@@ -29,7 +33,7 @@ open class HoldTickView : View {
     /**
      * Time to change state in milliseconds. By default 1000ms.
      */
-    var switchingTime: Int = 1000
+    var switchingTime: Long = 1000L
 
     var shadowRadius: Float = 16f
 
@@ -51,9 +55,15 @@ open class HoldTickView : View {
     private val circlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
     }
+    private val animatedCirclePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+    }
+    private var circleSweepAngle = 0f
     private var circleRadius = 0f
     private var circleWidth = 0f
     private val circlePosition = PointF()
+    private val circleBounds = RectF()
+    private var circleAnimator = ValueAnimator()
 
     constructor(context: Context) : super(context) {
         init(context)
@@ -74,7 +84,7 @@ open class HoldTickView : View {
             try {
                 checkedColor = typedArray.getColor(R.styleable.HoldTickView_checkedColor, checkedColor)
                 uncheckedColor = typedArray.getColor(R.styleable.HoldTickView_uncheckedColor, uncheckedColor)
-                switchingTime = typedArray.getInteger(R.styleable.HoldTickView_switchingTime, switchingTime)
+                switchingTime = typedArray.getInteger(R.styleable.HoldTickView_switchingTime, switchingTime.toInt()).toLong()
             } finally {
                 typedArray.recycle()
             }
@@ -84,9 +94,30 @@ open class HoldTickView : View {
         setLayerType(LAYER_TYPE_SOFTWARE, circlePaint)
     }
 
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onTouchEvent(event: MotionEvent): Boolean = when (event.action) {
+        MotionEvent.ACTION_DOWN -> {
+            val callback = {
+                isChecked = !isChecked
+                stopCircleAnimation()
+                startTickAnimation()
+            }
+            handler.postDelayed(callback, switchingTime)
+            startCircleAnimation()
+            true
+        }
+        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+            handler.removeCallbacksAndMessages(null)
+            stopCircleAnimation()
+            true
+        }
+        else -> super.onTouchEvent(event)
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         drawCircle(canvas)
+        drawAnimatedCircle(canvas)
         drawTick(canvas)
     }
 
@@ -97,8 +128,17 @@ open class HoldTickView : View {
         canvas.drawCircle(circlePosition.x, circlePosition.y, circleRadius, circlePaint)
     }
 
+    private fun drawAnimatedCircle(canvas: Canvas) {
+        if (circleSweepAngle == 0f) {
+            return
+        }
+        animatedCirclePaint.color = if (isChecked) uncheckedColor else checkedColor
+        animatedCirclePaint.strokeWidth = circleWidth
+        canvas.drawArc(circleBounds, START_ANGLE, -circleSweepAngle, false, animatedCirclePaint)
+    }
+
     private fun drawTick(canvas: Canvas) {
-        applyTickDashEffect(tickPhase)
+        tickPaint.pathEffect = DashPathEffect(floatArrayOf(tickLength, tickLength), tickPhase * tickLength)
         tickPaint.color = checkedColor
         tickPaint.strokeWidth = tickWidth
         tickPaint.setShadowLayer(shadowRadius, 0f, 0f, shadowColor)
@@ -120,6 +160,12 @@ open class HoldTickView : View {
             x = center
             y = center
         }
+        circleBounds.apply {
+            left = circlePosition.x - circleRadius
+            top = circlePosition.y - circleRadius
+            right = circlePosition.x + circleRadius
+            bottom = circlePosition.y + circleRadius
+        }
     }
 
     private fun recalculateTickSize(viewSize: Float) {
@@ -140,28 +186,43 @@ open class HoldTickView : View {
         super.onMeasure(minMeasureSpec, minMeasureSpec)
     }
 
-    fun animateTick(toShow: Boolean) {
+    private fun startTickAnimation() {
         if (tickAnimator.isStarted) {
             tickAnimator.removeAllUpdateListeners()
             tickAnimator.cancel()
             tickAnimator = ValueAnimator()
         }
         when {
-            toShow -> tickAnimator.setFloatValues(1f, 0f)
-            else -> tickAnimator.setFloatValues(0f, 1f)
+            isChecked -> tickAnimator.setFloatValues(PHASE_INVISIBLE, PHASE_VISIBLE)
+            else -> tickAnimator.setFloatValues(PHASE_VISIBLE, -PHASE_INVISIBLE)
         }
-        tickAnimator.addUpdateListener(this::onTickAnimationUpdate)
+        tickAnimator.addUpdateListener {
+            tickPhase = tickAnimator.animatedValue as Float
+            invalidate()
+        }
         tickAnimator.duration = 200
         tickAnimator.start()
     }
 
-    private fun onTickAnimationUpdate(animator: ValueAnimator) {
-        tickPhase = animator.animatedValue as Float
-        invalidate()
+    private fun startCircleAnimation() {
+        if (circleAnimator.isStarted) {
+            stopCircleAnimation()
+        }
+        circleAnimator.setFloatValues(0f, DEGREES)
+        circleAnimator.addUpdateListener({
+            circleSweepAngle = circleAnimator.animatedValue as Float
+            invalidate()
+        })
+        circleAnimator.duration = switchingTime
+        circleAnimator.start()
     }
 
-    private fun applyTickDashEffect(phase: Float) {
-        tickPaint.pathEffect = DashPathEffect(floatArrayOf(tickLength, tickLength), phase * tickLength)
+    private fun stopCircleAnimation() {
+        circleSweepAngle = 0f
+        circleAnimator.removeAllUpdateListeners()
+        circleAnimator.cancel()
+        circleAnimator = ValueAnimator()
+        invalidate()
     }
 
 }

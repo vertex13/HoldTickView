@@ -17,6 +17,6 @@
         android:id="@+id/holdTickView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:switchingTime="2000" />
+        app:switchingTime="500" />
 
 </LinearLayout>

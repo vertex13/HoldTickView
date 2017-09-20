@@ -11,7 +11,6 @@ class ExampleActivity : AppCompatActivity() {
         setContentView(R.layout.activity_example)
         runButton.setOnClickListener {
             holdTickView.isChecked = !holdTickView.isChecked
-            holdTickView.animateTick(holdTickView.isChecked)
         }
     }
 
