@@ -2,11 +2,14 @@
 <resources>
 
     <declare-styleable name="HoldTickView">
-        <!-- A color in the checked state. -->
+        <attr name="android:checked" format="boolean" />
+        <attr name="android:enabled" format="boolean" />
         <attr name="checkedColor" format="color" />
-        <!-- A color in the unchecked state. -->
         <attr name="uncheckedColor" format="color" />
-        <!-- Switching time in milliseconds. -->
+        <attr name="shadowColor" format="color" />
+        <attr name="shadowRadius" format="dimension" />
+        <attr name="tickColor" format="color" />
+        <attr name="tickAnimationTime" format="integer" />
         <attr name="switchingTime" format="integer" />
     </declare-styleable>
 

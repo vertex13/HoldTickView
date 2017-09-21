@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">HoldTickView</string>
+    <string name="switch_button">Change state</string>
 </resources>

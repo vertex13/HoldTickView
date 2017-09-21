@@ -4,12 +4,15 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 
 /**
- * @author Aleksandr Pavlov
+ * @author Aleksandr Pavlov (vertex55reg@gmail.com)
  */
 open class HoldTickView : View {
 
@@ -18,28 +21,46 @@ open class HoldTickView : View {
         const val PHASE_INVISIBLE = 1f
         const val START_ANGLE = 315f
         const val DEGREES = 360f
+        const val CIRCLE_RATIO = 0.1f
+        const val TICK_RATIO = 0.14f
+        const val DEFAULT_SHADOW_RADIUS = 4f // in dp
     }
 
+    var isChecked: Boolean = false
+        private set(value) {
+            field = value
+            onCheckedChangeListener?.invoke(value)
+        }
     /**
-     * A color in the checked state. By default 0xFF43A047.
+     * A color in the checked state. By default is 0xFF43A047.
      */
     var checkedColor: Int = (0xFF43A047).toInt()
     /**
-     * A color in the unchecked state. By default 0xFF757575.
+     * A color in the unchecked state. By default is 0xFF757575.
      */
     var uncheckedColor: Int = (0xFF757575).toInt()
-
-    var shadowColor: Int = Color.BLACK
+    /**
+     * A shadow color. By default is 0x88000000.
+     */
+    var shadowColor: Int = (0x88000000).toInt()
+    /**
+     * Shadow radius. By default is 4 dp.
+     */
+    var shadowRadius: Float = 0f
+    /**
+     * Tick color. By default is 0xFF43A047.
+     */
+    var tickColor: Int = (0xFF43A047).toInt()
+    /**
+     * Tick animation time in milliseconds. By default 200ms.
+     */
+    var tickAnimationTime: Long = 200L
     /**
      * Time to change state in milliseconds. By default 1000ms.
      */
     var switchingTime: Long = 1000L
 
-    var shadowRadius: Float = 16f
-
-    var isChecked: Boolean = false
-
-    private val tickRatio = 8f
+    var onCheckedChangeListener: ((isChecked: Boolean) -> Unit)? = null
 
     private val tickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -48,10 +69,9 @@ open class HoldTickView : View {
     private val tickPath = Path()
     private var tickWidth = 0f
     private var tickLength = 0f
-    private val pathCoords = arrayOf(PointF(0f, 0.3f), PointF(0.4f, 0.7f), PointF(1f, 0f))
+    private val pathCoords = arrayOf(PointF(0.2f, 0.3f), PointF(0.5f, 0.6f), PointF(0.95f, 0.05f))
     private var tickAnimator = ValueAnimator()
 
-    private val circleRatio = 10f
     private val circlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
     }
@@ -82,8 +102,14 @@ open class HoldTickView : View {
         if (attrs != null) {
             val typedArray = context.theme.obtainStyledAttributes(attrs, R.styleable.HoldTickView, 0, 0)
             try {
+                isChecked = typedArray.getBoolean(R.styleable.HoldTickView_android_checked, isChecked)
+                isEnabled = typedArray.getBoolean(R.styleable.HoldTickView_android_enabled, isEnabled)
                 checkedColor = typedArray.getColor(R.styleable.HoldTickView_checkedColor, checkedColor)
                 uncheckedColor = typedArray.getColor(R.styleable.HoldTickView_uncheckedColor, uncheckedColor)
+                shadowColor = typedArray.getColor(R.styleable.HoldTickView_shadowColor, shadowColor)
+                shadowRadius = typedArray.getDimension(R.styleable.HoldTickView_shadowRadius, dpToPx(DEFAULT_SHADOW_RADIUS))
+                tickColor = typedArray.getColor(R.styleable.HoldTickView_tickColor, tickColor)
+                tickAnimationTime = typedArray.getInteger(R.styleable.HoldTickView_tickAnimationTime, tickAnimationTime.toInt()).toLong()
                 switchingTime = typedArray.getInteger(R.styleable.HoldTickView_switchingTime, switchingTime.toInt()).toLong()
             } finally {
                 typedArray.recycle()
@@ -94,19 +120,30 @@ open class HoldTickView : View {
         setLayerType(LAYER_TYPE_SOFTWARE, circlePaint)
     }
 
+    fun setChecked(isChecked: Boolean, animate: Boolean) {
+        this.isChecked = isChecked
+        if (animate) {
+            startTickAnimation()
+        } else {
+            tickPhase = if (isChecked) PHASE_VISIBLE else PHASE_INVISIBLE
+            invalidate()
+        }
+    }
+
     @SuppressLint("ClickableViewAccessibility")
-    override fun onTouchEvent(event: MotionEvent): Boolean = when (event.action) {
-        MotionEvent.ACTION_DOWN -> {
-            val callback = {
+    override fun onTouchEvent(event: MotionEvent): Boolean = when {
+        !isEnabled -> true
+        event.action == MotionEvent.ACTION_DOWN -> {
+            val switchCallback = {
                 isChecked = !isChecked
                 stopCircleAnimation()
                 startTickAnimation()
             }
-            handler.postDelayed(callback, switchingTime)
+            handler.postDelayed(switchCallback, switchingTime)
             startCircleAnimation()
             true
         }
-        MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+        event.action == MotionEvent.ACTION_UP -> {
             handler.removeCallbacksAndMessages(null)
             stopCircleAnimation()
             true
@@ -139,7 +176,7 @@ open class HoldTickView : View {
 
     private fun drawTick(canvas: Canvas) {
         tickPaint.pathEffect = DashPathEffect(floatArrayOf(tickLength, tickLength), tickPhase * tickLength)
-        tickPaint.color = checkedColor
+        tickPaint.color = tickColor
         tickPaint.strokeWidth = tickWidth
         tickPaint.setShadowLayer(shadowRadius, 0f, 0f, shadowColor)
         canvas.drawPath(tickPath, tickPaint)
@@ -153,7 +190,7 @@ open class HoldTickView : View {
     }
 
     private fun recalculateCircleSize(viewSize: Float) {
-        circleWidth = viewSize / circleRatio
+        circleWidth = viewSize * CIRCLE_RATIO
         circleRadius = Math.max(viewSize * 0.4f - circleWidth * 0.5f - shadowRadius, 0f)
         circlePosition.apply {
             val center = viewSize * 0.5f
@@ -169,7 +206,7 @@ open class HoldTickView : View {
     }
 
     private fun recalculateTickSize(viewSize: Float) {
-        tickWidth = viewSize / tickRatio
+        tickWidth = viewSize * TICK_RATIO
         val padding = tickWidth * 0.5f + shadowRadius
         val croppedSize = Math.max(viewSize - padding * 2f, 0f)
         tickPath.reset()
@@ -200,7 +237,7 @@ open class HoldTickView : View {
             tickPhase = tickAnimator.animatedValue as Float
             invalidate()
         }
-        tickAnimator.duration = 200
+        tickAnimator.duration = tickAnimationTime
         tickAnimator.start()
     }
 
@@ -223,6 +260,93 @@ open class HoldTickView : View {
         circleAnimator.cancel()
         circleAnimator = ValueAnimator()
         invalidate()
+    }
+
+    private fun dpToPx(dp: Float): Float {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.resources.displayMetrics)
+    }
+
+    override fun onSaveInstanceState(): Parcelable {
+        val superState = super.onSaveInstanceState()
+        val savedState = SavedState(superState)
+        savedState.isChecked = isChecked
+        savedState.isEnabled = isEnabled
+        savedState.checkedColor = checkedColor
+        savedState.uncheckedColor = uncheckedColor
+        savedState.shadowColor = shadowColor
+        savedState.shadowRadius = shadowRadius
+        savedState.tickColor = tickColor
+        savedState.tickAnimationTime = tickAnimationTime
+        savedState.switchingTime = switchingTime
+        return savedState
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable) {
+        state as SavedState
+        super.onRestoreInstanceState(state.superState)
+        isChecked = state.isChecked
+        isEnabled = state.isEnabled
+        checkedColor = state.checkedColor
+        uncheckedColor = state.uncheckedColor
+        shadowColor = state.shadowColor
+        shadowRadius = state.shadowRadius
+        tickColor = state.tickColor
+        tickAnimationTime = state.tickAnimationTime
+        switchingTime = state.switchingTime
+        tickPhase = if (isChecked) PHASE_VISIBLE else PHASE_INVISIBLE
+    }
+
+    private class SavedState : View.BaseSavedState {
+
+        var isChecked: Boolean = false
+        var isEnabled: Boolean = false
+        var checkedColor: Int = 0
+        var uncheckedColor: Int = 0
+        var shadowColor: Int = 0
+        var shadowRadius: Float = 0f
+        var tickColor: Int = 0
+        var tickAnimationTime: Long = 0L
+        var switchingTime: Long = 0L
+
+        constructor(superState: Parcelable) : super(superState)
+
+        private constructor(parcelIn: Parcel) : super(parcelIn) {
+            isChecked = parcelIn.readInt() != 0
+            isEnabled = parcelIn.readInt() != 0
+            checkedColor = parcelIn.readInt()
+            uncheckedColor = parcelIn.readInt()
+            shadowColor = parcelIn.readInt()
+            shadowRadius = parcelIn.readFloat()
+            tickColor = parcelIn.readInt()
+            tickAnimationTime = parcelIn.readLong()
+            switchingTime = parcelIn.readLong()
+        }
+
+        override fun writeToParcel(parcelOut: Parcel, flags: Int) {
+            super.writeToParcel(parcelOut, flags)
+            parcelOut.writeInt(if (isChecked) 1 else 0)
+            parcelOut.writeInt(if (isEnabled) 1 else 0)
+            parcelOut.writeInt(checkedColor)
+            parcelOut.writeInt(uncheckedColor)
+            parcelOut.writeInt(shadowColor)
+            parcelOut.writeFloat(shadowRadius)
+            parcelOut.writeInt(tickColor)
+            parcelOut.writeLong(tickAnimationTime)
+            parcelOut.writeLong(switchingTime)
+        }
+
+        companion object {
+            val CREATOR: Parcelable.Creator<SavedState> = object : Parcelable.Creator<SavedState> {
+                override fun createFromParcel(parcelIn: Parcel): SavedState {
+                    return SavedState(parcelIn)
+                }
+
+                override fun newArray(size: Int): Array<SavedState?> {
+                    return arrayOfNulls(size)
+                }
+            }
+        }
+
     }
 
 }
