@@ -21,8 +21,8 @@ open class HoldTickView : View {
         const val PHASE_INVISIBLE = 1f
         const val START_ANGLE = 315f
         const val DEGREES = 360f
-        const val CIRCLE_RATIO = 0.1f
-        const val TICK_RATIO = 0.14f
+        const val CIRCLE_RATIO = 0.12f
+        const val TICK_RATIO = 0.16f
         const val DEFAULT_SHADOW_RADIUS = 4f // in dp
     }
 
@@ -67,9 +67,9 @@ open class HoldTickView : View {
     }
     private var tickPhase = PHASE_INVISIBLE
     private val tickPath = Path()
+    private val tickPathCoords = arrayOf(PointF(0.1f, 0.25f), PointF(0.5f, 0.6f), PointF(1f, 0f))
     private var tickWidth = 0f
     private var tickLength = 0f
-    private val pathCoords = arrayOf(PointF(0.2f, 0.3f), PointF(0.5f, 0.6f), PointF(0.95f, 0.05f))
     private var tickAnimator = ValueAnimator()
 
     private val circlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -108,7 +108,7 @@ open class HoldTickView : View {
                 uncheckedColor = typedArray.getColor(R.styleable.HoldTickView_uncheckedColor, uncheckedColor)
                 shadowColor = typedArray.getColor(R.styleable.HoldTickView_shadowColor, shadowColor)
                 shadowRadius = typedArray.getDimension(R.styleable.HoldTickView_shadowRadius, dpToPx(DEFAULT_SHADOW_RADIUS))
-                tickColor = typedArray.getColor(R.styleable.HoldTickView_tickColor, tickColor)
+                tickColor = typedArray.getColor(R.styleable.HoldTickView_tickColor, checkedColor)
                 tickAnimationTime = typedArray.getInteger(R.styleable.HoldTickView_tickAnimationTime, tickAnimationTime.toInt()).toLong()
                 switchingTime = typedArray.getInteger(R.styleable.HoldTickView_switchingTime, switchingTime.toInt()).toLong()
             } finally {
@@ -191,7 +191,7 @@ open class HoldTickView : View {
 
     private fun recalculateCircleSize(viewSize: Float) {
         circleWidth = viewSize * CIRCLE_RATIO
-        circleRadius = Math.max(viewSize * 0.4f - circleWidth * 0.5f - shadowRadius, 0f)
+        circleRadius = Math.max(viewSize * 0.48f - circleWidth * 0.5f - shadowRadius, 0f)
         circlePosition.apply {
             val center = viewSize * 0.5f
             x = center
@@ -207,13 +207,13 @@ open class HoldTickView : View {
 
     private fun recalculateTickSize(viewSize: Float) {
         tickWidth = viewSize * TICK_RATIO
-        val padding = tickWidth * 0.5f + shadowRadius
+        val padding = tickWidth * 0.4f + shadowRadius
         val croppedSize = Math.max(viewSize - padding * 2f, 0f)
         tickPath.reset()
         val calcPosition = { v: Float -> v * croppedSize + padding }
-        val firstPoint = pathCoords.first()
+        val firstPoint = tickPathCoords.first()
         tickPath.moveTo(calcPosition(firstPoint.x), calcPosition(firstPoint.y))
-        pathCoords.forEach { point -> tickPath.lineTo(calcPosition(point.x), calcPosition(point.y)) }
+        tickPathCoords.forEach { point -> tickPath.lineTo(calcPosition(point.x), calcPosition(point.y)) }
         tickLength = PathMeasure(tickPath, false).length
     }
 
