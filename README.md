@@ -6,12 +6,25 @@ to switch its state.
 ![Example](resources/holdtickview-example.gif)
 
 ## Usage
-1. Add this to your app/build.gradle file
+**1. Add gradle dependency**
+- Add this to the module build.gradle file
 ```
-compile 'com.koshkama:holdtickview:1.0.0'
+dependencies {
+    compile 'com.github.vertex13:holdtickview:1.0.0@aar'
+}
 ```
 
-2. Add the view to your layout file and customize it
+- And this to the project build.gradle file
+(if the file does not contain it yet)
+```
+buildscript {
+    repositories {
+        jcenter()
+    }
+}
+```
+
+**2. Add the view to your layout file and customize it**
 ```
 <com.koshkama.holdtickview.HoldTickView
     android:id="@+id/holdTickView"
@@ -28,7 +41,7 @@ compile 'com.koshkama:holdtickview:1.0.0'
     app:switchingTime="1000" />
 ```
 
-3. Set a listener
+**3. Set a listener**
 ```
 holdTickView.onCheckedChangeListener = { isChecked: Boolean ->
     doSomething()
