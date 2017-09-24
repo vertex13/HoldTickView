@@ -29,3 +29,24 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'holdtickview'
+    publishedGroupId = 'com.github.vertex13'
+    libraryName = 'HoldTickView'
+    artifact = 'holdtickview'
+    libraryDescription = 'An android tick view'
+    siteUrl = 'https://github.com/vertex13/HoldTickView'
+    gitUrl = 'https://github.com/vertex13/HoldTickView.git'
+    libraryVersion = '1.0.0'
+    developerId = 'vertex55'
+    developerName = 'Aleksandr Pavlov'
+    developerEmail = 'vertex55reg@gmail.com'
+    licenseName = 'The MIT License'
+    licenseUrl = 'https://opensource.org/licenses/MIT'
+    allLicenses = ["MIT"]
+}
+
+apply from: 'https://raw.githubusercontent.com/vertex13/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/vertex13/JCenter/master/bintrayv1.gradle'
