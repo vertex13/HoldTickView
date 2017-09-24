@@ -18,6 +18,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:checked="true"
-        app:switchingTime="500" />
+        android:enabled="true"
+        app:checkedColor="#43A047"
+        app:uncheckedColor="#757575"
+        app:shadowColor="#88000000"
+        app:shadowRadius="4dp"
+        app:tickColor="#4CAF50"
+        app:tickAnimationTime="200"
+        app:switchingTime="1000" />
 
 </LinearLayout>
