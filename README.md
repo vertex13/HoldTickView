@@ -42,11 +42,28 @@ buildscript {
 ```
 
 **3. Set a listener**
+- Kotlin
 ```
 holdTickView.onCheckedChangeListener = { isChecked: Boolean ->
     doSomething()
 }
 ```
+
+- Java
+```
+holdTickView.setOnCheckedChangeListener(new Function1<Boolean, Unit>() {
+    public Unit invoke(final Boolean isChecked) {
+        doSomething();
+        return null;
+    }
+});
+```
+
+**4. Set up Kotlin plugin (only for Java projects)**
+
+If you do not use Kotlin in your project you have to add the Kotlin plugin
+and the Kotlin dependency to your project. You can find detailed instructions in
+[the official documentation][kotlin-plugin-reference].
 
 ## License
 The MIT License (MIT)
@@ -67,3 +84,5 @@ BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR P
 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+[kotlin-plugin-reference]: https://kotlinlang.org/docs/reference/using-gradle.html
