@@ -134,21 +134,39 @@ open class HoldTickView : View {
     override fun onTouchEvent(event: MotionEvent): Boolean = when {
         !isEnabled -> true
         event.action == MotionEvent.ACTION_DOWN -> {
-            val switchCallback = {
-                isChecked = !isChecked
-                stopCircleAnimation()
-                startTickAnimation()
+            onPressStarted()
+            true
+        }
+        event.action == MotionEvent.ACTION_MOVE -> {
+            val rect = Rect()
+            getHitRect(rect)
+            val x = event.x.toInt() + left
+            val y = event.y.toInt() + top
+            if (!rect.contains(x, y)) {
+                onPressFinished()
             }
-            handler.postDelayed(switchCallback, switchingTime)
-            startCircleAnimation()
             true
         }
         event.action == MotionEvent.ACTION_UP -> {
-            handler.removeCallbacksAndMessages(null)
-            stopCircleAnimation()
+            onPressFinished()
             true
         }
         else -> super.onTouchEvent(event)
+    }
+
+    private fun onPressStarted() {
+        val switchCallback = {
+            isChecked = !isChecked
+            stopCircleAnimation()
+            startTickAnimation()
+        }
+        handler.postDelayed(switchCallback, switchingTime)
+        startCircleAnimation()
+    }
+
+    private fun onPressFinished() {
+        handler.removeCallbacksAndMessages(null)
+        stopCircleAnimation()
     }
 
     override fun onDraw(canvas: Canvas) {
