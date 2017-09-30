@@ -147,7 +147,7 @@ open class HoldTickView : View {
             }
             true
         }
-        event.action == MotionEvent.ACTION_UP -> {
+        event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL -> {
             onPressFinished()
             true
         }
