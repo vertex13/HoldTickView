@@ -19,10 +19,10 @@ open class HoldTickView : View {
     private companion object {
         const val PHASE_VISIBLE = 0f
         const val PHASE_INVISIBLE = 1f
-        const val START_ANGLE = 315f
-        const val DEGREES = 360f
-        const val CIRCLE_RATIO = 0.12f
-        const val TICK_RATIO = 0.16f
+        const val START_ANGLE = 310f
+        const val DEGREES = 310f
+        const val CIRCLE_RATIO = 0.1f
+        const val TICK_RATIO = 0.12f
         const val DEFAULT_SHADOW_RADIUS = 4f // in dp
     }
 
@@ -67,7 +67,7 @@ open class HoldTickView : View {
     }
     private var tickPhase = PHASE_INVISIBLE
     private val tickPath = Path()
-    private val tickPathCoords = arrayOf(PointF(0.1f, 0.25f), PointF(0.5f, 0.6f), PointF(1f, 0f))
+    private val tickPathCoords = arrayOf(PointF(0.15f, 0.45f), PointF(0.45f, 0.75f), PointF(0.97f, 0.15f))
     private var tickWidth = 0f
     private var tickLength = 0f
     private var tickAnimator = ValueAnimator()
@@ -180,7 +180,7 @@ open class HoldTickView : View {
         circlePaint.color = if (isChecked) checkedColor else uncheckedColor
         circlePaint.strokeWidth = circleWidth
         circlePaint.setShadowLayer(shadowRadius, 0f, 0f, shadowColor)
-        canvas.drawCircle(circlePosition.x, circlePosition.y, circleRadius, circlePaint)
+        canvas.drawArc(circleBounds, START_ANGLE, -DEGREES, false, circlePaint)
     }
 
     private fun drawAnimatedCircle(canvas: Canvas) {
@@ -209,7 +209,7 @@ open class HoldTickView : View {
 
     private fun recalculateCircleSize(viewSize: Float) {
         circleWidth = viewSize * CIRCLE_RATIO
-        circleRadius = Math.max(viewSize * 0.48f - circleWidth * 0.5f - shadowRadius, 0f)
+        circleRadius = Math.max((viewSize - circleWidth) * 0.5f - shadowRadius, 0f)
         circlePosition.apply {
             val center = viewSize * 0.5f
             x = center
@@ -225,7 +225,7 @@ open class HoldTickView : View {
 
     private fun recalculateTickSize(viewSize: Float) {
         tickWidth = viewSize * TICK_RATIO
-        val padding = tickWidth * 0.4f + shadowRadius
+        val padding = tickWidth * 0.5f + shadowRadius
         val croppedSize = Math.max(viewSize - padding * 2f, 0f)
         tickPath.reset()
         val calcPosition = { v: Float -> v * croppedSize + padding }
