@@ -1,3 +1,5 @@
+[ ![Download](https://api.bintray.com/packages/vertex55/maven/holdtickview/images/download.svg) ](https://bintray.com/vertex55/maven/holdtickview/_latestVersion)
+
 # HoldTickView
 An android tick view which switches state after holding.
 `HoldTickView.switchingTime` defines time the view should be held
@@ -10,7 +12,7 @@ to switch its state.
 - Add this to the module build.gradle file
 ```
 dependencies {
-    compile 'com.github.vertex13:holdtickview:1.0.0@aar'
+    compile 'com.github.vertex13:holdtickview:1.0.7@aar'
 }
 ```
 
